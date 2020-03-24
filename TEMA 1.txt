@@ -1,0 +1,155 @@
+.data
+	p:.space 4
+	v:.space 1000
+	v1:.space 1000
+	endl:.asciiz "\n"
+	str:.space 100
+	alfabet:.asciiz "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	mesaj_generator:.asciiz "Generatorul este: "
+	mesaj_neprim:.asciiz "p nu este prim"
+	mesaj_criptare:.asciiz "Criptarea este: "
+	mesaj_decriptare:.asciiz "Decriptarea este: "
+.text
+main:
+	li $v0,5
+	syscall
+	move $t2,$v0 #t2 = p
+	sw $t2,p
+	li $t1,2				
+	bgt $t1,$t2,neprim 
+	div $t0,$t2,2
+loopprim:
+	bgt $t1,$t0,exitprim
+	rem $t3,$t2,$t1
+	beq $t3,$0,neprim
+	addi $t1,1
+	j loopprim
+neprim:
+	la $a0,mesaj_neprim
+	li $v0,4
+	syscall
+	li $v0,10
+	syscall	
+exitprim:
+	li $t1,2
+loop:
+	bge $t1,$t2,exit #t1=i,t2=p
+	li $t3,1 #t3=gen
+	li $t4,1 #t4=j
+	li $t5,0 #indice vector
+	sw $t3,v($t5)
+	addi $t5,4
+	li $t6,1 #cnt
+	li $t7,1 #1
+	li $t8,2 #2
+	li $t0,4
+     loopgen:
+	  bge $t4,$t2,exitgen
+	  mul $t3,$t3,$t1
+	  rem $t3,$t3,$t2
+	  sw $t3,v($t5)
+	  mul $t0,$t0,$t3
+	  div $t5,$t5,4
+	  sw $t5,v1($t0)
+	  mul $t5,$t5,4
+	  li $t0,4
+	  beq $t3,$t7,cnt
+	  addi $t4,1
+	  addi $t5,4
+	  j loopgen
+     cnt:
+	addi $t6,1
+	addi $t4,1
+	addi $t5,4
+        j loopgen
+     exitgen:
+        beq $t6,$t8,verifgen
+     	addi $t1,1
+	j loop
+verifgen:
+	addi $t5,$t5,-4
+	lw $t4,v($t5)
+	beq $t4,$t7,generator
+	addi $t1,1
+	j loop
+generator:
+la $a0,mesaj_generator
+li $v0,4
+syscall
+move $a0,$t1
+li $v0,1
+syscall
+la $a0,str
+li $a1,100
+li $v0,8
+syscall
+la $a0,endl
+li $v0,4 
+syscall 
+li $t0,0
+lb $t3,str($t0)
+la $a0,mesaj_criptare
+li $v0,4
+syscall
+loopsirb:
+	beq $t3,10,exitsirb
+	beqz $t3,exitsirb
+	li $t4,0
+	looppozb:
+		lb $t5,str($t0)
+		lb $t6,alfabet($t4)
+		beq $t5,$t6,afisb
+		addi $t4,1
+		j looppozb
+	afisb:
+	mul $t4,$t4,4
+	lw $t5,v($t4)
+	lb $a0,alfabet($t5)
+	li $v0,11
+	syscall
+	addi $t0,1
+	lb $t3,str($t0)
+	j loopsirb
+exitsirb:
+li $t0,0
+li $t4,4
+sw $t0,v1($t4)
+la $a0,str
+li $a1,100
+li $v0,8
+syscall
+la $a0,endl
+li $v0,4 
+syscall 
+li $t0,0
+lb $t3,str($t0)
+la $a0,mesaj_decriptare
+li $v0,4
+syscall
+loopsir:
+	beqz $t3,exitsir
+	li $t4,0
+	looppoz:
+		lb $t5,str($t0)
+		lb $t6,alfabet($t4)
+		beq $t5,$t6,afis
+		addi $t4,1
+		j looppoz
+	afis:
+	mul $t4,$t4,4
+	lw $t5,v1($t4)
+	lb $a0,alfabet($t5)
+	li $v0,11
+	syscall
+	addi $t0,1
+	lb $t3,str($t0)
+	j loopsir
+exitsir:
+move $t1,$t2
+j loop
+	
+exit:
+li $v0,10
+syscall
+	
+     

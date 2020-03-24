@@ -1,0 +1,92 @@
+.data
+	n:.word 4
+	v:.word 1, 5, 4, 6
+	sp:.byte ' '
+.text
+suma_patrate:
+	subu $sp,4
+	sw $fp,0($sp)
+	addi $fp,$sp,4
+	subu $sp,4
+	sw $ra,0($sp)
+	subu $sp,4
+	sw $s0,0($sp)
+	lw $s0,0($fp)
+	beqz $s0,exit_suma
+	move $t1,$s0
+	mul $t2,$t1,$t1
+	add $v0,$v0,$t2
+	addi $s0,-1
+	subu $sp,4
+	sw $s0,0($sp)
+	jal suma_patrate
+	addu $sp,4
+   exit_suma:
+	 lw $s0,-12($fp)
+	 lw $ra,-8($fp)
+	 lw $fp,-4($fp)
+	 addu $sp,12
+	 jr $ra
+modifica:
+	subu $sp,4
+	sw $fp,0($sp)
+	addi $fp,$sp,4
+	subu $sp,4
+	sw $ra,0($sp)
+	subu $sp,4
+	sw $s0,0($sp)
+	subu $sp,4
+	sw $s1,0($sp)
+	lw $s0,0($fp)
+	lw $s1,4($fp)
+	beqz $s1,exit_modif
+	lw $t0,0($s0)
+	li $v0,0
+	ble $t0,1,cont #caz pt valori <= 1 (0,1,+negative)
+	subu $sp,4
+	addi $t0,-1
+	sw $t0,0($sp)
+	jal suma_patrate
+	addu $sp,4
+      cont:
+	sw $v0,0($s0)
+	addi $s0,4
+	addi $s1,-1
+	subu $sp,4
+	sw $s1,0($sp)
+	subu $sp,4
+	sw $s0,0($sp)
+	jal modifica
+	addu $sp,8
+   exit_modif:
+	lw $s1,-16($fp)
+	lw $s0,-12($fp)
+	lw $ra,-8($fp)
+	lw $fp,-4($fp)
+	addu $sp,16
+	jr $ra	
+main:
+	lw $t0,n
+	subu $sp,4
+	sw $t0,0($sp)
+	la $t0,v
+	subu $sp,4
+	sw $t0,0($sp)
+	jal modifica
+	addu $sp,8
+	lw $t1,n
+	mul $t1,$t1,4
+	li $t0,0
+    afis:
+	beq $t0,$t1,exit_afis
+	lw $a0,v($t0)
+	li $v0,1
+	syscall
+	lb $a0,sp
+	li $v0,11
+	syscall
+	addi $t0,4
+	j afis
+    exit_afis:
+	li $v0,10
+	syscall
